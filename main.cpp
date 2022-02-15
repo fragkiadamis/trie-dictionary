@@ -1,6 +1,10 @@
-#include <iostream>
+#include <stdio.h>
+#include "dictionary.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
+    init_dictionary();
+    if(!dictionary_from_file("diction.txt"))
+        return 1;
+
     return 0;
 }
