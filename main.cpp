@@ -17,8 +17,8 @@ char *read_word() {
 
 int main() {
     FILE *file;
-    unsigned choice = 0;
-    char *word, esc;
+    unsigned choice = 0, exists;
+    char *word, esc, ans;
 
     // Open file
     if (!(file = fopen("diction.txt", "r"))) {
@@ -50,12 +50,27 @@ int main() {
         /* Process user choice */
         switch (choice) {
             case 1:
-                puts("Write word and press enter");
+                puts("Write new word and press enter");
                 esc = getchar(); // Escape \n
                 word = read_word(); // Read word from keyboard
                 dictionary_insert(root, word); // Insert word in dictionary
                 break;
             case 2:
+                puts("Write search string and press enter");
+                esc = getchar(); // Escape \n
+                word = read_word(); // Read word from keyboard
+                exists = dictionary_search(root, word);
+                if (exists)
+                    printf("Word: %s exists in the dictionary\n", word);
+                else {
+                    puts("Word does not exists in the dictionary, would you like to add it? (y/n): ");
+                    fflush(stdout);
+                    scanf("%c", &ans); // Read answer from keyboard
+                    if (ans == 'y') {
+                        puts("TEST");
+                        dictionary_insert(root, word); // Insert word in dictionary
+                    }
+                }
                 break;
             case 3:
                 file = fopen("diction.txt", "w+"); // Open file with write permissions
@@ -63,6 +78,7 @@ int main() {
                 fclose(file); // Close file
                 break;
             case 4:
+                esc = getchar(); // Escape \n
                 dictionary_display(root); // Display list
                 break;
             case 5:

@@ -9,8 +9,13 @@ typedef struct Trie {
 } TRIE;
 
 TRIE *dictionary_from_file(FILE *);
+
 void dictionary_insert(TRIE *, char *);
+
 void dictionary_display(TRIE *);
-void dictionary_update(TRIE *, FILE *file);
+
+unsigned dictionary_search(TRIE *, char *);
+
+void dictionary_update(TRIE *, FILE *);
 
 #endif

@@ -17,6 +17,7 @@ void dictionary_insert(TRIE *node, char *word) {
     char *word_parser = (char *) malloc(sizeof(strlen(word)));
     strcpy(word_parser, word);
 
+    /* Traverse string character by character */
     while (*word_parser) {
         unsigned ab_index = tolower(*word_parser) - 'a'; // Get order, (alphabetical order --- a-z --> 0-25)
         if (!node->children[ab_index]) // Create node if not exists
@@ -59,6 +60,23 @@ void dictionary_display(TRIE *node) {
         if (node->children[i])
             dictionary_display(node->children[i]);
     }
+}
+
+/* Search the dictionary for a word */
+unsigned dictionary_search(TRIE *node, char *word) {
+    char *word_parser = (char *) malloc(sizeof(strlen(word)));
+    strcpy(word_parser, word);
+
+    /* Traverse string character by character */
+    while (*word_parser) {
+        unsigned ab_index = tolower(*word_parser) - 'a'; // Get order, (alphabetical order --- a-z --> 0-25)
+        if (!node->children[ab_index])
+            return 0;
+        node = node->children[ab_index];
+        word_parser++; // Go to next character
+    }
+
+    return 1;
 }
 
 /* Update the dictionary file */
