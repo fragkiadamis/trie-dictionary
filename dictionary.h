@@ -8,7 +8,9 @@ typedef struct Trie {
     struct Trie *children[26];     // The children array
 } TRIE;
 
-TRIE *dictionary_from_file(const char *);
-void display_trie_structure(TRIE *);
+TRIE *dictionary_from_file(FILE *);
+void dictionary_insert(TRIE *, char *);
+void dictionary_display(TRIE *);
+void dictionary_update(TRIE *, FILE *file);
 
 #endif
