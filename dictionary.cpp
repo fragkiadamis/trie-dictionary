@@ -1,61 +1,62 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "dictionary.h"
 
-/* TRIE tree node */
-typedef struct trie {
-    unsigned leaf: 1;
-    char name[20];
-    struct trie *pin[26];
-} TRIE;
-
-/* Insert a trie node */
-TRIE *new_node() {
-    TRIE *node;
-    node = (TRIE *) malloc(sizeof(TRIE));
+/* Create a new trie node and return it */
+TRIE *create_trie_node() {
+    TRIE *node = (TRIE*) malloc(sizeof(TRIE));
+    node->word = NULL;
+    node->leaf = 0;
     return node;
 }
 
-TRIE dictionary;
+/* Insert a word in the trie tree */
+void trie_insert_node(TRIE *node, char *word) {
+    char *word_parser = word;
 
-/* Initialize the dictionary */
-void init_dictionary() {
-    dictionary = (struct trie) {};
+    while (*word_parser) {
+        unsigned ab_index = tolower(*word_parser) - 'a'; // Get order, (alphabetical order --- a-z --> 0-25)
+        if (!node->children[ab_index])
+            node->children[ab_index] = create_trie_node();
+        node = node->children[ab_index];
+        word_parser++;
+    }
+
+    node->word = (char*) malloc(strlen(word) + 1); // Allocate required space for word
+    strcpy(node->word, word); // Assign word
+    node->leaf = 1; // The node is a leaf
 }
 
 /* Initializes the dictionary */
-unsigned dictionary_from_file(const char *filename) {
-    FILE *file;
-    char *word;
-    char ch;
+TRIE *dictionary_from_file(const char *filename) {
+    FILE *file = NULL;
     unsigned bytes_allocated = 0;
+    char *word = (char *) malloc(bytes_allocated * sizeof(char)), ch;
+    TRIE *root = create_trie_node();
 
-    /* Read file */
-    file = fopen(filename, "r");
-    if (!file) {
-        printf("Could not find/open file: %s\n", filename);
-        return 0;
+    // Open file
+    if (!(file = fopen(filename, "r")))
+        return NULL;
+
+    while (fscanf(file, "%s", word) > 0) { // Ensure that at least a word is parsed
+//        printf("%s | length: %d | alphabet number: %d\n", word, strlen(word), tolower(*word) - 'a');
+        trie_insert_node(root, word); // Insert the word in the trie node
     }
 
-    /* Initialize word */
-    word = (char *) malloc(2 * sizeof(char));
-    /* Read file character by character */
-    while ((ch = fgetc(file)) != EOF) {
-        /* While on the same word (ENTER character terminates the word) */
-        if (ch != '\n') {
-            /* Change word size */
-            word = (char*)realloc(word, bytes_allocated + 2);
-            /* Add character to word */
-            word[bytes_allocated] = ch;
-            bytes_allocated++;
-            continue;
-        }
+    fclose(file); // Close file
 
-        /* Once the word is over, add null terminator */
-        word[bytes_allocated] = '\0';
-        /* Reset byte counter to 0 */
-        bytes_allocated = 0;
-        puts(word);
+    return root;
+}
+
+/* Display all the words in the trie structure leaves */
+void display_trie_structure(TRIE *node) {
+    if(node->leaf)
+        puts(node->word);
+
+    for (unsigned i = 0; i < 26; i++) {
+        if (node->children[i])
+            display_trie_structure(node->children[i]);
     }
-    return 1;
 }
