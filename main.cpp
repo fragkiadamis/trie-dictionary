@@ -11,19 +11,19 @@ char *read_word() {
         word[bytes_allocated++] = ch;
     }
     word[bytes_allocated] = '\0';
-
+    getchar(); // Clear newline from the buffer
     return word;
 }
 
 int main() {
     FILE *file;
     unsigned choice = 0, exists;
-    char *word, esc, ans;
+    char *word, ans;
 
     // Open file
     if (!(file = fopen("diction.txt", "r"))) {
         puts("Could not find/open dictionary file");
-        return 1;
+        exit(EXIT_FAILURE);
     }
 
     /* Initialize dictionary from file */
@@ -44,31 +44,32 @@ int main() {
         );
 
         scanf("%d",&choice);
-        if (choice == 7)
-            break;
+        getchar(); // Clear newline from the buffer
+
+        if (choice == 7) // Exit the program
+            exit(EXIT_SUCCESS);
 
         /* Process user choice */
         switch (choice) {
             case 1:
                 puts("Write new word and press enter");
-                esc = getchar(); // Escape \n
                 word = read_word(); // Read word from keyboard
-                dictionary_insert(root, word); // Insert word in dictionary
+                exists = dictionary_insert(root, word); // Insert word in dictionary
+                if (exists)
+                    printf("Word %s already exists in the dictionary\n", word);
                 break;
             case 2:
                 puts("Write search string and press enter");
-                esc = getchar(); // Escape \n
                 word = read_word(); // Read word from keyboard
                 exists = dictionary_search(root, word);
                 if (exists)
-                    printf("Word: %s exists in the dictionary\n", word);
+                    printf("Word: %s already exists in the dictionary\n", word);
                 else {
-                    puts("Word does not exists in the dictionary, would you like to add it? (y/n): ");
-                    fflush(stdout);
+                    printf("Word %s does not exists in the dictionary, would you like to add it? (y/n): ", word);
                     scanf("%c", &ans); // Read answer from keyboard
                     if (ans == 'y') {
-                        puts("TEST");
                         dictionary_insert(root, word); // Insert word in dictionary
+                        printf("%s added to dictionary\n", word);
                     }
                 }
                 break;
@@ -78,12 +79,13 @@ int main() {
                 fclose(file); // Close file
                 break;
             case 4:
-                esc = getchar(); // Escape \n
                 dictionary_display(root); // Display list
                 break;
             case 5:
-                break;
-            case 6:
+                puts("Write the word to be deleted and press enter");
+                word = read_word(); // Read word from keyboard
+                dictionary_delete(root, word);
+                printf("Word %s deleted from the dictionary", word);
                 break;
             default:
                 puts("Enter a valid choice");

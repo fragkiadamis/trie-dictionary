@@ -10,12 +10,14 @@ typedef struct Trie {
 
 TRIE *dictionary_from_file(FILE *);
 
-void dictionary_insert(TRIE *, char *);
-
-void dictionary_display(TRIE *);
+unsigned dictionary_insert(TRIE *, char *);
 
 unsigned dictionary_search(TRIE *, char *);
 
 void dictionary_update(TRIE *, FILE *);
+
+void dictionary_display(TRIE *);
+
+TRIE *dictionary_delete(TRIE *, char *, unsigned depth = 0);
 
 #endif
