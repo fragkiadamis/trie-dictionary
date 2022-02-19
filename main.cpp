@@ -84,7 +84,10 @@ int main() {
             case 5:
                 puts("Write the word to be deleted and press enter");
                 word = read_word(); // Read word from keyboard
-                dictionary_delete(root, word);
+                dictionary_delete(root, word); // Delete word from dictionary
+                file = fopen("diction.txt", "w+"); // Open file with write permissions
+                dictionary_update(root, file); // Update file
+                fclose(file); // Close file
                 printf("Word %s deleted from the dictionary", word);
                 break;
             default:
