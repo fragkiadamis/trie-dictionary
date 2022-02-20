@@ -4,7 +4,7 @@
 #include <ctype.h>
 #include "dictionary.h"
 
-char *read_word() {
+char *read_string() {
     char ch, *word = (char*) malloc(sizeof(char));
     unsigned bytes_allocated = 0;
 
@@ -28,27 +28,28 @@ void prompt_to_insert(TRIE *root, char *word) {
 }
 
 void handle_results(TRIE *root, TRIE *node, char *word, unsigned  auto_complete) {
-    if (auto_complete) { // If it's an auto-complete request
+    if (auto_complete) { // If it's an auto-complete request, e.g. word == pr$
         TRIE **results = (TRIE**) malloc(sizeof(TRIE*));
         unsigned size = 0;
         find_children(&results, node, &size); // Find all the leaves of the node
         puts("Choose word");
         for (unsigned i = 0; i < size; i++)
-            printf("%d. %s\t", i + 1, results[i]->word); // Print results
+            printf("%d. %s\t", i + 1, results[i]->word); // Print results (e.g. 1. present 2. problem 3. program)
         putchar('\n');
-        char ch = getchar();
-        if (isdigit(ch)) { // If the user input is a digit
-            if (0 < atoi(&ch) <= size) // If the input is in the correct range according to arrays size
-                printf("Word: %s exists in the dictionary\n", results[atoi(&ch) - 1]->word);
+        char *ans = read_string();
+        if (strlen(ans) == 1 && isdigit(ans[0])) { // If the user input is a digit
+            unsigned digit = atoi(ans);
+            if (0 < digit <= size) // If the input is in the correct range according to arrays size
+                printf("Word: '%s' exists in the dictionary\n", results[digit - 1]->word);
             else
                 puts("Not a valid option. Abort.");
-        } else { // The user types more letters
-            word[strlen(word) - 1] = ch; // Replace $ with the input character (e.g. pr$ --> pra, when ch == a)
-            char *rest_of_word = read_word(); // Read the rest of the word (e.g. da)
-            strcat(word, rest_of_word); // Concatenate the stings to create the new word (e.g. prada)
-            prompt_to_insert(root, word);
+        } else { // The user types more characters
+            word = (char*) realloc(word, (strlen(word) - 1) * sizeof(char)); // Remove last character (null-terminator)
+            word[strlen(word) - 1] = '\0'; // Add null terminator where the '$' is
+            strcat(word, ans); // Concatenate the stings to create the new word (e.g. proud)
+            prompt_to_insert(root, word); // Ask to insert the word
         }
-    } else if (!node || !node->leaf) // Node NOT found, NOT an auto-complete request
+    } else if (!node || !node->leaf) // Node NOT found, or it is not a leaf, NOT an auto-complete request
         prompt_to_insert(root, word);
     else // Node found, NOT an auto-complete request
         printf("Word: %s exists in the dictionary\n", node->word);
@@ -91,14 +92,14 @@ int main() {
         switch (choice) {
             case 1:
                 puts("Write new word and press enter");
-                word = read_word(); // Read word from keyboard
+                word = read_string(); // Read word from keyboard
                 node = dictionary_insert(root, word); // Insert word in dictionary
                 if (node)
                     printf("Word %s already exists in the dictionary\n", node->word);
                 break;
             case 2:
                 puts("Write search string and press enter");
-                word = read_word(); // Read word from keyboard
+                word = read_string(); // Read word from keyboard
                 auto_complete = (word[strlen(word) - 1] == '$') ? 1 : 0; // Is it an auto-complete request?
                 node = dictionary_search(root, word); // Search for a node according to the string input
                 handle_results(root, node, word, auto_complete); // Handle the results of the search according to the inputs
@@ -113,7 +114,7 @@ int main() {
                 break;
             case 5:
                 puts("Write the word to be deleted and press enter");
-                word = read_word(); // Read word from keyboard
+                word = read_string(); // Read word from keyboard
                 dictionary_delete(root, word); // Delete word from dictionary
                 file = fopen("diction.txt", "w+"); // Open file with write permissions
                 dictionary_update(root, file); // Update file
