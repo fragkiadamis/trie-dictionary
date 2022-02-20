@@ -14,12 +14,20 @@ TRIE *create_trie_node() {
     return node;
 }
 
+/* Check if node has children nodes */
+unsigned has_children(TRIE *node) {
+    for (unsigned i = 0; i < ALPHABET_SIZE; i++)
+        if (node->children[i])
+            return 1;
+    return 0;
+}
+
 /* Insert a word in the trie tree */
-unsigned dictionary_insert(TRIE *node, char *word) {
+TRIE *dictionary_insert(TRIE *node, char *word) {
     char *word_parser = (char *) malloc(sizeof(strlen(word)));
     strcpy(word_parser, word);
 
-    /* Traverse string character by character */
+    // Traverse string character by character
     while (*word_parser) {
         unsigned ab_index = tolower(*word_parser) - 'a'; // Get order, (alphabetical order --- a-z --> 0-25)
         if (!node->children[ab_index]) // Create node if not exists
@@ -30,13 +38,13 @@ unsigned dictionary_insert(TRIE *node, char *word) {
 
     /* If the word already exists just return */
     if (node->word && node->leaf)
-        return 1;
+        return node;
 
     node->word = (char *) malloc(strlen(word) + 1); // Allocate required space for word
     strcpy(node->word, word); // Assign word
     node->leaf = 1; // The node is a leaf
 
-    return 0;
+    return NULL;
 }
 
 /* Initializes the dictionary */
@@ -51,21 +59,35 @@ TRIE *dictionary_from_file(FILE *file) {
     return root;
 }
 
-/* Search the dictionary for a word */
-unsigned dictionary_search(TRIE *node, char *word) {
+/* Search the dictionary for a string */
+TRIE *dictionary_search(TRIE *node, char *word) {
     char *word_parser = (char *) malloc(sizeof(strlen(word)));
     strcpy(word_parser, word);
 
-    /* Traverse string character by character */
-    while (*word_parser) {
+    // Traverse string character by character, stop if word ends with '$'
+    while (*word_parser && *word_parser != '$') {
         unsigned ab_index = tolower(*word_parser) - 'a'; // Get order, (alphabetical order --- a-z --> 0-25)
         if (!node->children[ab_index]) // If there is no continuity, then the word does not exist
-            return 0;
+            return NULL;
         node = node->children[ab_index];
         word_parser++; // Go to next character
     }
 
-    return 1;
+    return node;
+}
+
+/* Find all leaves of an intermediate node */
+void find_children(TRIE ***results, TRIE *node, unsigned *size) {
+    if (node->leaf) {
+        (*size)++;
+        *results = (TRIE**) realloc(*results, (*size) * sizeof(TRIE*));
+        (*results)[(*size) - 1] = node;
+    }
+
+    for (unsigned i = 0; i < ALPHABET_SIZE; i++) {
+        if (node->children[i])
+            find_children(results, node->children[i], size);
+    }
 }
 
 /* Update the dictionary file */
@@ -77,10 +99,9 @@ void dictionary_update(TRIE *node, FILE *file) {
     }
 
     // Start recursion for each position of the child node
-    for (unsigned i = 0; i < ALPHABET_SIZE; i++) {
+    for (unsigned i = 0; i < ALPHABET_SIZE; i++)
         if (node->children[i])
             dictionary_update(node->children[i], file);
-    }
 }
 
 /* Display all the words in the trie structure leaves */
@@ -90,18 +111,9 @@ void dictionary_display(TRIE *node) {
         puts(node->word);
 
     // Start recursion for each position of the child node
-    for (unsigned i = 0; i < ALPHABET_SIZE; i++) {
-        if (node->children[i])
-            dictionary_display(node->children[i]);
-    }
-}
-
-/* Check if node has children nodes */
-unsigned has_children(TRIE *node) {
     for (unsigned i = 0; i < ALPHABET_SIZE; i++)
         if (node->children[i])
-            return 1;
-    return 0;
+            dictionary_display(node->children[i]);
 }
 
 /* Delete a word from the dictionary */
