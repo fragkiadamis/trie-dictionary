@@ -28,13 +28,13 @@ void prompt_to_insert(TRIE *root, char *word) {
 }
 
 void handle_results(TRIE *root, TRIE *node, char *word, unsigned  auto_complete) {
-    if (auto_complete) { // If it's an auto-complete request, e.g. word == pr$
+    if (auto_complete) { // If it's an auto-complete request
         TRIE **results = (TRIE**) malloc(sizeof(TRIE*));
         unsigned size = 0;
         find_children(&results, node, &size); // Find all the leaves of the node
         puts("Choose word");
         for (unsigned i = 0; i < size; i++)
-            printf("%d. %s\t", i + 1, results[i]->word); // Print results (e.g. 1. present 2. problem 3. program)
+            printf("%d. %s\t", i + 1, results[i]->word);
         putchar('\n');
         char *ans = read_string();
         if (strlen(ans) == 1 && isdigit(ans[0])) { // If the user input is a digit
@@ -46,7 +46,7 @@ void handle_results(TRIE *root, TRIE *node, char *word, unsigned  auto_complete)
         } else { // The user types more characters
             word = (char*) realloc(word, (strlen(word) - 1) * sizeof(char)); // Remove last character (null-terminator)
             word[strlen(word) - 1] = '\0'; // Add null terminator where the '$' is
-            strcat(word, ans); // Concatenate the stings to create the new word (e.g. proud)
+            strcat(word, ans); // Concatenate the stings to create the new word
             prompt_to_insert(root, word); // Ask to insert the word
         }
     } else if (!node || !node->leaf) // Node NOT found, or it is not a leaf, NOT an auto-complete request
